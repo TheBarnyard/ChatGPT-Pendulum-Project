@@ -95,31 +95,17 @@ static bool mt6701_readAngle14(uint16_t &angle14) {
   return true;
 }
 
-static uint32_t nextSendUs = 0, lastReportMs = 0, lastDeferredMs = 0;
+static uint32_t nextSendUs = 0, lastReportMs = 0;
 static uint16_t lastRaw = 0xFFFF; // newest packet value, for the summary line
 static char logBuffer[1024];
-static size_t logLength = 0, logOffset = 0;
 
 static void serviceDiagnostics() {
-  // Avoid waiting for USB/UART space. There is only one serial writer.
-  int room = Serial.availableForWrite();
-  if (room > 0 && logOffset < logLength) {
-    size_t count = logLength - logOffset;
-    if (count > (size_t)room) count = (size_t)room;
-    if (count > 64) count = 64;
-    logOffset += Serial.write((const uint8_t*)logBuffer + logOffset, count);
-  }
+  // The XIAO's native USB serial can report no write room forever if the host
+  // opens the port after boot, so write each summary directly once a second.
+  // With no host attached the core drops old bytes instead of blocking.
   uint32_t nowMs = millis();
   if ((uint32_t)(nowMs - lastReportMs) < DIAG_PERIOD_MS) return;
   uint32_t windowMs = nowMs - lastReportMs;
-  if (logOffset < logLength) {
-    // Retain counters/maxima; do not block transmission for a slow monitor.
-    if ((uint32_t)(nowMs - lastDeferredMs) >= DIAG_PERIOD_MS) {
-      ++diag.logDeferred;
-      lastDeferredMs = nowMs;
-    }
-    return;
-  }
   uint32_t ok, fail, lastOkUs, lastFailMs;
   bool seenOk;
   portENTER_CRITICAL(&deliveryMux);
@@ -151,12 +137,10 @@ static void serviceDiagnostics() {
     (unsigned long)ok, (unsigned long)fail, (unsigned long)okAgeUs,
     (unsigned long)lastFailMs, (unsigned long)diag.logDeferred);
   if (length < 0 || (size_t)length >= sizeof(logBuffer)) {
-    logLength = logOffset = 0;
     ++diag.logDeferred;
     return; // Keep maxima if formatting could not produce a complete line.
   }
-  logLength = (size_t)length;
-  logOffset = 0;
+  Serial.write((const uint8_t*)logBuffer, (size_t)length);
   lastReportMs = nowMs;
   diag.readMaxUs = diag.readMaxMs = diag.writeMaxUs = diag.requestMaxUs = 0;
   diag.sendMaxUs = diag.gapMaxUs = diag.gapMaxMs = diag.lateMaxUs = 0;
@@ -164,16 +148,20 @@ static void serviceDiagnostics() {
 
 static void requireOk(const char* operation, esp_err_t error) {
   if (error == ESP_OK) return;
-  Serial.printf("TX2_SETUP_ERROR operation=%s error=%d\n", operation, (int)error);
-  while (true) delay(1000);
+  while (true) {  // repeat so a monitor opened later still sees it
+    Serial.printf("TX2_SETUP_ERROR operation=%s error=%d\n", operation, (int)error);
+    delay(1000);
+  }
 }
 
 void setup() {
   Serial.begin(115200);
   delay(200);
   if (!Wire.begin()) {
-    Serial.println("TX2_SETUP_ERROR operation=Wire.begin");
-    while (true) delay(1000);
+    while (true) {
+      Serial.println("TX2_SETUP_ERROR operation=Wire.begin");
+      delay(1000);
+    }
   }
   Wire.setClock(400000);
   // Observe the existing timeout; do not change it while diagnosing the gaps.
