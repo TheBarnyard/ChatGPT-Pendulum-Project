@@ -36,6 +36,10 @@ sub(r'^TRAJECTORY_FILE = HERE / "double_swingup_trajectory.json"$',
 #   same_3.0s  same way up, 3.0 s, 5 cart reversals (fastest; least forgiving of model errors)
 #   same_3.5s  same way up, 3.5 s, 6 cart reversals (medium)
 #   same_4.0s  same way up, 4.0 s, 6 cart reversals (slowest; most forgiving)
+#   whip_3.0s  whip: arm 2 makes 1.5 turns, 3.0 s, 5 reversals (fastest whip)
+#   whip_3.5s  whip, 3.5 s, 4 reversals
+#   whip_4.5s  whip, 4.5 s, 6 reversals
+#   folded_4.5s  folded: the arms turn opposite ways, 4.5 s, 7 reversals
 # --list prints the plan files found in this folder.
 SWING_PATH = "same_4.0s"
 TRAJECTORY_FILE = HERE / f"double_swingup_V2_{SWING_PATH}.json"''')
@@ -115,7 +119,7 @@ rep('''    ap = argparse.ArgumentParser(description="Double pendulum swing-up an
     else:
         run()''', '''    ap = argparse.ArgumentParser(description="Double pendulum swing-up and balance (V2 arms).")
     ap.add_argument("--plan", action="store_true", help="re-make the chosen plan for the arm values in this file")
-    ap.add_argument("--path", help="which plan to run, e.g. same_3.0s, same_3.5s, same_4.0s (default: SWING_PATH)")
+    ap.add_argument("--path", help="which plan to run, e.g. same_4.0s or whip_3.5s (default: SWING_PATH; --list shows all)")
     ap.add_argument("--list", action="store_true", help="list the plan files in this folder and stop")
     args = ap.parse_args()
     if args.list:

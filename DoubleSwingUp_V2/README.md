@@ -8,7 +8,7 @@
 
 Everything else is unchanged, including tracking gains, balance, recovery, limits and CSV logging.
 
-## Plans (same way up)
+## Plans
 
 The digital-twin column runs this exact script against the emulated Arduino, receiver, stepper and arms. Each plan has 11 cases × 3 seeds = 33 runs. The cases are nominal, arm-2 mass ±4 %, arm-2 inertia ±10 %, arm-1 inertia +10 %, arm-2 CoM +3 %, joint or pivot friction ×3, TX2 on slot 3, and 2 % radio loss with 3 ms latency.
 
@@ -17,8 +17,14 @@ The digital-twin column runs this exact script against the emulated Arduino, rec
 | `same_4.0s` (default) | 4.0 s | ±300 mm | 0.68 m/s | 4.7 m/s² | 33/33 |
 | `same_3.5s` | 3.5 s | ±300 mm | 0.71 m/s | 5.1 m/s² | 33/33 |
 | `same_3.0s` | 3.0 s | ±290 mm | 0.75 m/s | 6.4 m/s² | 30/33 (fails at arm-2 inertia +10 %) |
+| `whip_4.5s` | 4.5 s | ±219 mm | 0.70 m/s | 4.9 m/s² | 28/33 (fails at arm-2 inertia +10 %, some at arm-2 mass -4 %) |
+| `whip_3.5s` | 3.5 s | ±300 mm | 0.75 m/s | 6.6 m/s² | 27/33 (fails at arm-2 inertia ±10 %) |
+| `whip_3.0s` | 3.0 s | ±263 mm | 0.75 m/s | 7.7 m/s² | 23/33 (fails at arm-2 inertia ±10 %, arm-2 mass -4 %) |
+| `folded_4.5s` | 4.5 s | ±213 mm | 0.75 m/s | 6.8 m/s² | 24/33 (fails at arm-2 inertia ±10 %, arm-2 mass -4 %) |
 
-All results are simulation only [SIM]. Start with `same_4.0s`.
+In the whip plans arm 2 makes 1.5 turns before stopping upright. In the folded plan the arms turn opposite ways. All 7 plans catch every time in the nominal case, with friction ×3, with TX2 on slot 3, and with radio loss. The whip and folded plans are more sensitive to errors in arm 2's mass and inertia.
+
+All results are simulation only [SIM]. Start with `same_4.0s`, then `same_3.5s`, before trying a whip plan.
 
 ## Before running
 - **The cart travels up to ±300 mm**, and an attempt aborts at ±360 mm. Make sure the limit switches are farther from the centre than that on both sides.
@@ -37,4 +43,5 @@ cd ~/Desktop/DoubleSwingUpV2
 $HOME/PythonLibraries/bin/python PythonMaster2_swingup_V2.py --list
 $HOME/PythonLibraries/bin/python PythonMaster2_swingup_V2.py --path same_4.0s
 ```
+Other plans: `--path same_3.5s`, `same_3.0s`, `whip_4.5s`, `whip_3.5s`, `whip_3.0s`, `folded_4.5s`.
 The prompts are the same as the original script's. CSV logs go to `~/Desktop/DoubleSwingUpV2/run_logs/`.
