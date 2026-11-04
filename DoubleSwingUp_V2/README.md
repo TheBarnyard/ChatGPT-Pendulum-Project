@@ -27,7 +27,7 @@ In the whip plans arm 2 makes 1.5 turns before stopping upright. In the folded p
 All results are simulation only [SIM]. Start with `same_4.0s`, then `same_3.5s`, before trying a whip plan.
 
 ## Before running
-- **The cart travels up to ±300 mm**, and an attempt aborts at ±360 mm. Make sure the limit switches are farther from the centre than that on both sides.
+- **The cart travels up to ±300 mm**, and an attempt aborts at ±360 mm. The track was measured on 2026-11-04 at about 1080 mm switch to switch (±540 mm), so this fits when the cart starts within about 50 mm of the middle.
 - Centre the cart before starting. Both arms must hang still.
 
 ## Install on the Pi (copy-paste)
@@ -45,3 +45,10 @@ $HOME/PythonLibraries/bin/python PythonMaster2_swingup_V2.py --path same_4.0s
 ```
 Other plans: `--path same_3.5s`, `same_3.0s`, `whip_4.5s`, `whip_3.5s`, `whip_3.0s`, `folded_4.5s`.
 The prompts are the same as the original script's. CSV logs go to `~/Desktop/DoubleSwingUpV2/run_logs/`.
+
+## Debug: angle sensors
+`AngleSensorDiagnostic.py` is an unchanged copy of the Pi's `SinglePendulum/AngleSensorDiagnostic.py` (ba019f9). It uses `angle_protocol.py` from this folder. Motor power OFF. It reads only the receiver and prints all 3 slots five times a second: raw angle, change since start, age and dropouts. Move one arm at a time to see which slot it is on. Ctrl+C stops it.
+```
+cd ~/Desktop/DoubleSwingUpV2
+$HOME/PythonLibraries/bin/python AngleSensorDiagnostic.py
+```

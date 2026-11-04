@@ -1,4 +1,5 @@
 PythonMaster2_swingup_V2.py
+AngleSensorDiagnostic.py
 angle_packet_fallback.py
 angle_protocol.py
 double_swingup_V2_folded_4.5s.json
