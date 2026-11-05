@@ -1,0 +1,23 @@
+# Cart jolt tests (2026-11-05)
+
+Tools to find out why the cart jolts (UIM344 red LED) during double swing-up. The full step-by-step plan is in the project's Claude Doc "Cart jolt debug plan"; this folder holds the scripts it uses. Nothing here changes the team's files.
+
+| File | What |
+| --- | --- |
+| `motor_stress_test.py` | 18 cart moves of rising acceleration / speed, no pendulum control. After each it asks: red LED? jolt? offset from a tape mark? Saves `results/stress_*.csv`. |
+| `replay_run_motor.py` | Replays the exact motor commands of a logged swing-up attempt (`motor_timer_command` column). `--info` lists attempts with peak speed / acceleration. |
+| `cart_link.py` | Shared serial link to the Mega (same protocol as the swing-up scripts). |
+| `ArduinoSlaveRamp/ArduinoSlaveRamp.ino` | Copy of `ArduinoSlave.ino` that ramps the step rate over each 10 ms instead of jumping. Same pins, protocol and step counting. Compiles (avr-gcc syntax check); not yet run on the rig. |
+| `tools/fake_mega.py` | Fake Mega on a pseudo-terminal, used to test the scripts off the rig. |
+
+The Mega's step count is the number of pulses it sent, not where the cart is. Skipped teeth or a driver lockout never show in it, so the tests use a tape mark and your eyes (or a slow-motion video).
+
+## Install on the Pi (copy-paste)
+```
+mkdir -p ~/Desktop/CartJolt && cd ~/Desktop/CartJolt
+B=https://raw.githubusercontent.com/TheBarnyard/ChatGPT-Pendulum-Project/claude/project-thread-wk3tn6/CartJolt
+for f in $(curl -fsSL $B/FILES); do mkdir -p "$(dirname "$f")"; curl -fsSL -o "$f" "$B/$f"; done
+sha256sum -c SHA256SUMS
+PY=$HOME/PythonLibraries/bin/python
+$PY motor_stress_test.py --list
+```
