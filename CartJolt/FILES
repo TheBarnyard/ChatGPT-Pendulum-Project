@@ -4,6 +4,7 @@ replay_run_motor.py
 two_load_stall_test.py
 two_load_reversal_test.py
 command_style_test.py
+reversal_method_test.py
 ArduinoSlaveRamp/ArduinoSlaveRamp.ino
 tools/fake_mega.py
 README.md
