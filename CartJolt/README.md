@@ -8,6 +8,7 @@ Tools to find out why the cart jolts (UIM344 red LED) during double swing-up. Th
 | `replay_run_motor.py` | Replays the exact motor commands of a logged swing-up attempt (`motor_timer_command` column). `--info` lists attempts with peak speed / acceleration. |
 | `two_load_stall_test.py` | Arms off. Finds the acceleration where the motor stalls (ending at 0.8 m/s), once with the bare cart and once with a weighed item strapped on, then `--compute` gives the cart's effective mass and the motor's spare force. |
 | `two_load_reversal_test.py` | Same as the stall test, but each trial is 3 back-to-back hard reversals between -0.8 and +0.8 m/s with no braking pause, like the swing-up paths. Imports the search and math from `two_load_stall_test.py`. |
+| `command_style_test.py` | Arms off. Sends the same move 7 ways (command every 2/5/10/20/40 ms, timer hysteresis, smoothed corners) in a blind shuffled order; you score the stutter, it ranks the techniques. Moves: reversals, sine, steady cruise, or a replayed swing attempt. |
 | `cart_link.py` | Shared serial link to the Mega (same protocol as the swing-up scripts). |
 | `ArduinoSlaveRamp/ArduinoSlaveRamp.ino` | Copy of `ArduinoSlave.ino` that ramps the step rate over each 10 ms instead of jumping. Same pins, protocol and step counting. Compiles (avr-gcc syntax check); not yet run on the rig. |
 | `tools/fake_mega.py` | Fake Mega on a pseudo-terminal, used to test the scripts off the rig. |
