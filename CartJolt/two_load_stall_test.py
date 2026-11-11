@@ -102,7 +102,8 @@ def describe(v_end, a, v_max):
         x += sp * T
         xmin, xmax = min(xmin, x), max(xmax, x)
     return dict(top=abs(q[hs.stop - 1]), v0=q[hs.start - 1], n=n, peak=peak, mean=mean,
-                xmin=xmin, xmax=xmax, dur=len(seq) * T)
+                xmin=xmin, xmax=xmax, dur=len(seq) * T,
+                text=f"{q[hs.start - 1]:+.2f} -> {q[hs.stop - 1]:+.2f} m/s, mean {mean:.1f}")
 
 
 def ask(prompt, default=""):
@@ -176,12 +177,12 @@ class Search:
         return (self.lo + self.hi) / 2, (self.hi - self.lo) / 2
 
 
-def compute(paths):
+def compute(paths, prefix="stall", where="at the end of a hard speed-up"):
     runs = []
     if paths:
         runs = [json.loads(Path(p).read_text()) for p in paths]
     else:
-        files = sorted(OUT.glob("stall_*.json"))
+        files = sorted(OUT.glob(f"{prefix}_*.json"))
         allr = [dict(json.loads(f.read_text()), file=f.name) for f in files]
         bare = [r for r in allr if r.get("added_kg", 0) == 0 and r.get("a_stall")]
         load = [r for r in allr if r.get("added_kg", 0) > 0 and r.get("a_stall")]
@@ -211,7 +212,7 @@ def compute(paths):
     print()
     print(f"Effective moving mass (bare cart run): {m:.3f} +/- {m_err:.3f} kg")
     print(f"  minus the motor rotor's share ({ROTOR_EQ_KG:.3f} kg) = cart + belt + pulleys ~ {m - ROTOR_EQ_KG:.3f} kg")
-    print(f"Motor force beyond friction at {r1['top_speed']:.2f} m/s: {F:.1f} +/- {F_err:.1f} N"
+    print(f"Motor force beyond friction at {r1['top_speed']:.2f} m/s, {where}: {F:.1f} +/- {F_err:.1f} N"
           f"  = {Tq:.3f} N m at r = {R_PULLEY_M * 1000:.1f} mm [r assumed]")
     rpm = r1["top_speed"] / (2 * math.pi * R_PULLEY_M) * 60
     print(f"  ({rpm:.0f} rpm; datasheet holding torque 1.26 N m at 0 rpm and 2.8 A)")
@@ -248,12 +249,19 @@ def main():
         print("Give --added-kg (0 for the bare cart, or the weighed item's mass in kg).")
         return 1
 
+    return run_search(args, lambda a: hard_profile(args.end_speed, a, args.max_speed)[0],
+                      lambda a: describe(args.end_speed, a, args.max_speed),
+                      "stall", "Two-load stall test", "two_load_stall_test.py")
+
+
+def run_search(args, profile, describe_fn, prefix, title, script):
+    """Shared by the stall and reversal tests: run the trials, ask after each, save, print the result."""
     OUT.mkdir(exist_ok=True)
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     tag = "".join(c if c.isalnum() else "_" for c in args.label)[:40]
-    base = OUT / f"stall_{stamp}_{tag}"
-    top = describe(args.end_speed, 10, args.max_speed)["top"]
-    print(f"Two-load stall test, added mass {args.added_kg:.3f} kg, hard phase ends at {top:.3f} m/s.")
+    base = OUT / f"{prefix}_{stamp}_{tag}"
+    top = describe_fn(10)["top"]
+    print(f"{title}, added mass {args.added_kg:.3f} kg, hard phase ends at {top:.3f} m/s.")
     print("Arms OFF. Weight strapped down. Cart on the tape mark, >= 0.3 m from each limit switch. Hands off the rail.")
     if args.simulate_stall_at is None:
         ask("Press Enter to start (Ctrl+C stops at any time): ")
@@ -271,9 +279,9 @@ def main():
                 break
             k += 1
             a = search.next()
-            d = describe(args.end_speed, a, args.max_speed)
-            seq, _ = hard_profile(args.end_speed, a, args.max_speed)
-            print(f"\n[{k}] {search.phase:6s} a = {a:5.2f} m/s^2 ({d['v0']:+.2f} -> {d['top']:+.2f} m/s, mean {d['mean']:.1f})")
+            d = describe_fn(a)
+            seq = profile(a)
+            print(f"\n[{k}] {search.phase:6s} a = {a:5.2f} m/s^2 ({d['text']})")
             time.sleep(0.4)
             cart.run_speeds(seq, f"S{k}")
             cart.hold(0.3, f"S{k}")
@@ -324,8 +332,8 @@ def main():
     res = None
     if search.done and not search.note and search.result():
         # use the mean acceleration of the speeds actually sent (timer rounding), not the target
-        a_lo = describe(args.end_speed, search.lo, args.max_speed)["mean"]
-        a_hi = describe(args.end_speed, search.hi, args.max_speed)["mean"]
+        a_lo = describe_fn(search.lo)["mean"]
+        a_hi = describe_fn(search.hi)["mean"]
         res = ((a_lo + a_hi) / 2, max(abs(a_hi - a_lo) / 2, 0.25))
     summary = dict(label=args.label, added_kg=args.added_kg, speed_target=args.end_speed, top_speed=top,
                    a_stall=res[0] if res else None, a_err=res[1] if res else None,
@@ -340,7 +348,7 @@ def main():
         print(f"No result: {search.note or stop_reason}. Clean up to {search.lo}, stalls from {search.hi}.")
     print(f"Saved {base.name}.csv, .json and _cycles.csv in results/")
     if res and args.added_kg > 0:
-        print("\nNow: $HOME/PythonLibraries/bin/python two_load_stall_test.py --compute")
+        print(f"\nNow: $HOME/PythonLibraries/bin/python {script} --compute")
     return 0
 
 
