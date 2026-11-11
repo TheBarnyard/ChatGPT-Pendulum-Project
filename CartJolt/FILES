@@ -1,6 +1,7 @@
 cart_link.py
 motor_stress_test.py
 replay_run_motor.py
+two_load_stall_test.py
 ArduinoSlaveRamp/ArduinoSlaveRamp.ino
 tools/fake_mega.py
 README.md
