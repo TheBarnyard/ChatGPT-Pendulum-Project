@@ -57,8 +57,9 @@ A_GENTLE = 4.0                      # m/s^2, the gentle speed-up and slow-down
 COARSE = [6, 8, 10, 12, 14, 16, 18, 20, 22, 25, 28, 31, 35, 40, 45]
 HARD_CYCLES = 6                     # length of the hard phase, 10 ms cycles (shorter if the start speed would pass -max)
 RESOLUTION = 1.0                    # m/s^2, stop halving below this gap
-ROTOR_EQ_KG = 3e-5 / 0.0254 ** 2    # UIM5756PM rotor 300 g cm^2 at r 25.4 mm [assumed r]
-R_PULLEY_M = 0.0254                 # 2.00 in pitch diameter, inferred from 0.638175 m / 6400 steps [?]
+R_PULLEY_M = 0.0127                 # 1 in pitch diameter: Micro-Stepping 4 (CFG344, 2026-11-12) = 800 pulses/turn,
+                                    # 0.638175 m / 6400 pulses = 79.8 mm per turn
+ROTOR_EQ_KG = 3e-5 / R_PULLEY_M ** 2   # UIM5756PM rotor 300 g cm^2 seen at the belt: about 0.19 kg
 
 
 def ramp(v0, v1, a):
@@ -213,7 +214,7 @@ def compute(paths, prefix="stall", where="at the end of a hard speed-up"):
     print(f"Effective moving mass (bare cart run): {m:.3f} +/- {m_err:.3f} kg")
     print(f"  minus the motor rotor's share ({ROTOR_EQ_KG:.3f} kg) = cart + belt + pulleys ~ {m - ROTOR_EQ_KG:.3f} kg")
     print(f"Motor force beyond friction at {r1['top_speed']:.2f} m/s, {where}: {F:.1f} +/- {F_err:.1f} N"
-          f"  = {Tq:.3f} N m at r = {R_PULLEY_M * 1000:.1f} mm [r assumed]")
+          f"  = {Tq:.3f} N m at r = {R_PULLEY_M * 1000:.1f} mm")
     rpm = r1["top_speed"] / (2 * math.pi * R_PULLEY_M) * 60
     print(f"  ({rpm:.0f} rpm; datasheet holding torque 1.26 N m at 0 rpm and 2.8 A)")
     print("Assumes friction is the same in both runs. Paste this output in the thread.")
