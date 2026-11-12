@@ -24,7 +24,10 @@ rep('''# PythonMaster2_swingup_V2b.py: PythonMaster2_swingup_V2.py with a radio-
 #   - the Arduino's replies (step counts) are read whenever they have arrived (class CartStream);
 #     no reply for REPLY_TIMEOUT_S stops the run, as before,
 #   - the model, the swing tracking gains and the balance gains know the speed lands in parts,
-#   - the stop brake is sent the same way.
+#   - the stop brake is sent the same way,
+#   - radio gaps (added after the first rig run, 2026-11-12): while waiting or settling, up to 1 s
+#     (MAX_SETTLE_MISSES 100) with the cart braked and held still instead of stopping the run after 12
+#     frames; a gap while balancing ends that catch and recovers, like a fall, instead of stopping the run.
 # Same plans, observer, balance weights, recovery, limits and logging as V2b.
 # PythonMaster2_swingup_V2b.py: PythonMaster2_swingup_V2.py with a radio-aware swing observer
 ''')
@@ -297,6 +300,50 @@ rep('''                    try:
                                     f"(worst {link.late_ms:.1f} ms)")
                     except Exception as exc:
                         log("FAULT", f"could not drain the Arduino replies: {exc}")
+''')
+
+# ---------------------------------------------------------------- ride out radio gaps while settling
+# (2026-11-12, first V2b_D rig run: a 150+ ms TX1 gap mid-swing ended the attempt, then stopped the
+# whole run at 13 missing frames while recovering)
+rep('''                limit = MAX_RUNNING_CONSECUTIVE_MISSES if mode == "BALANCE" else max(MAX_SETTLE_MISSES, MAX_RUNNING_CONSECUTIVE_MISSES)
+''', '''                if mode == "BALANCE" and misses_in_row > MAX_RUNNING_CONSECUTIVE_MISSES:
+                    # V2b_D: a radio gap while balancing ends the catch (like a fall), not the run
+                    log("RUN", f"{misses_in_row} angle frames missing while balancing; recovering. {state['msg']}")
+                    mode, mode_t0 = "RECOVER", cycle_started
+                    if run_logger is not None:
+                        run_logger.event("lost", "angle frames missing", cycle_started - run_started_at)
+                limit = MAX_RUNNING_CONSECUTIVE_MISSES if mode == "BALANCE" else max(MAX_SETTLE_MISSES, MAX_RUNNING_CONSECUTIVE_MISSES)
+''')
+rep('''MAX_SETTLE_MISSES = 12
+''', '''MAX_SETTLE_MISSES = 100   # V2b_D: 12 in V2b. 1 s; while angles are missing the cart brakes and holds still
+''')
+rep('''                if misses_in_row > limit:
+                    raise RuntimeError(f"{misses_in_row} unusable angle frames in a row; stopping. {state['msg']}")
+            else:
+                misses_in_row = 0
+''', '''                if misses_in_row > limit:
+                    raise RuntimeError(f"{misses_in_row} unusable angle frames in a row; stopping. {state['msg']}")
+                if misses_in_row == MAX_RUNNING_CONSECUTIVE_MISSES + 1 and mode != "BALANCE":
+                    log("RUN", f"angle frames missing: holding the cart still (stops after {limit} frames). {state['msg']}")
+            else:
+                if misses_in_row > MAX_RUNNING_CONSECUTIVE_MISSES:
+                    log("RUN", f"angles back after {misses_in_row} missing frames")
+                misses_in_row = 0
+''')
+rep('''                calm = len(hang_hist) == hang_hist.maxlen and hang_dev < math.radians(STILL_ANGLE_DEG) and abs(cart_now) < 0.01
+''', '''                calm = len(hang_hist) == hang_hist.maxlen and hang_dev < math.radians(STILL_ANGLE_DEG) and abs(cart_now) < 0.01 \\
+                    and misses_in_row == 0
+''')
+rep('''            if mode == "RECOVER":
+                if t_mode < 0.5 and abs(v_state) > 0.05:
+''', '''            if mode == "RECOVER":
+                if misses_in_row > MAX_RUNNING_CONSECUTIVE_MISSES:
+                    # V2b_D: angles missing for a while: brake and hold the cart still until they come back
+                    a = -math.copysign(min(abs(v_state) / SAMPLE_PERIOD_S, STOP_BRAKE_M_S2), v_state)
+                elif t_mode < 0.5 and abs(v_state) > 0.05:
+''')
+rep('''                if hang_dev < math.radians(STILL_ANGLE_DEG * 2) and abs(cart_now) < 0.01:
+''', '''                if hang_dev < math.radians(STILL_ANGLE_DEG * 2) and abs(cart_now) < 0.01 and misses_in_row == 0:
 ''')
 
 # ---------------------------------------------------------------- command line

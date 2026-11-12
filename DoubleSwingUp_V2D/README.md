@@ -6,6 +6,7 @@
 - The script does not wait for the Arduino's reply. Replies (step counts) are read whenever they have arrived, and the newest one gives the cart position. If no reply comes for 150 ms (`REPLY_TIMEOUT_S`), the run stops as before (limit switch or stop button).
 - The model, the swing tracking gains and the balance gains are worked out for a speed change that lands in parts. The plan's speed changes are timed to the parts' average.
 - The stop brake is sent the same way.
+- Radio gaps (added 2026-11-12 after the first rig run, where one 150+ ms TX1 gap stopped the run): while waiting or settling, the cart brakes and holds still for up to 1 s of missing angles instead of stopping after 12 frames. A gap while balancing ends that catch and recovers, like a fall. On the twin with the rig-like radio: 41/139 attempts caught, the same as before, and no run stopped by a gap [SIM].
 - `--accel-max` sets `CART_ACCEL_MAX_M_S2` from the command line. The default stays at 16.
 
 Everything else is V2b's: plans, observer, balance weights, recovery, limits and CSV columns. `tools/make_v2b_d.py` makes the script from V2b, so the change can be checked line by line.

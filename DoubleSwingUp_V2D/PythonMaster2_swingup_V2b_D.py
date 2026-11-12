@@ -8,7 +8,10 @@
 #   - the Arduino's replies (step counts) are read whenever they have arrived (class CartStream);
 #     no reply for REPLY_TIMEOUT_S stops the run, as before,
 #   - the model, the swing tracking gains and the balance gains know the speed lands in parts,
-#   - the stop brake is sent the same way.
+#   - the stop brake is sent the same way,
+#   - radio gaps (added after the first rig run, 2026-11-12): while waiting or settling, up to 1 s
+#     (MAX_SETTLE_MISSES 100) with the cart braked and held still instead of stopping the run after 12
+#     frames; a gap while balancing ends that catch and recovers, like a fall, instead of stopping the run.
 # Same plans, observer, balance weights, recovery, limits and logging as V2b.
 # PythonMaster2_swingup_V2b.py: PythonMaster2_swingup_V2.py with a radio-aware swing observer
 # (2026-11-04, after rig run swingup_double_20261104_153309: 5 attempts of same_4.0s all drifted off
@@ -317,7 +320,7 @@ MAX_RUNNING_CONSECUTIVE_MISSES = 5   # unusable angle frames in a row allowed (p
 # V2b: during a swing, more than MAX_RUNNING_CONSECUTIVE_MISSES ends only that attempt (the cart
 # brakes and the arms settle for a retry). While waiting or settling, up to this many are allowed
 # before the run stops (the rig run of 2026-11-04 stopped on one 100 ms radio gap while settling).
-MAX_SETTLE_MISSES = 12
+MAX_SETTLE_MISSES = 100   # V2b_D: 12 in V2b. 1 s; while angles are missing the cart brakes and holds still
 MAX_SETUP_CONSECUTIVE_MISSES = 5     # the same during calibration
 MAX_HANGING_TOTAL_MISSES = 5         # total unusable frames allowed during calibration
 ESP32_PORT, ESP32_BAUD = "/dev/ttyUSB0", 921600        # receiver (protocol v1); change if the Pi names it differently
@@ -1044,10 +1047,20 @@ def run():
                     mode, mode_t0 = "RECOVER", cycle_started
                     if run_logger is not None:
                         run_logger.event("abort", f"mode=SWING; k={k}; angle frames missing", cycle_started - run_started_at)
+                if mode == "BALANCE" and misses_in_row > MAX_RUNNING_CONSECUTIVE_MISSES:
+                    # V2b_D: a radio gap while balancing ends the catch (like a fall), not the run
+                    log("RUN", f"{misses_in_row} angle frames missing while balancing; recovering. {state['msg']}")
+                    mode, mode_t0 = "RECOVER", cycle_started
+                    if run_logger is not None:
+                        run_logger.event("lost", "angle frames missing", cycle_started - run_started_at)
                 limit = MAX_RUNNING_CONSECUTIVE_MISSES if mode == "BALANCE" else max(MAX_SETTLE_MISSES, MAX_RUNNING_CONSECUTIVE_MISSES)
                 if misses_in_row > limit:
                     raise RuntimeError(f"{misses_in_row} unusable angle frames in a row; stopping. {state['msg']}")
+                if misses_in_row == MAX_RUNNING_CONSECUTIVE_MISSES + 1 and mode != "BALANCE":
+                    log("RUN", f"angle frames missing: holding the cart still (stops after {limit} frames). {state['msg']}")
             else:
+                if misses_in_row > MAX_RUNNING_CONSECUTIVE_MISSES:
+                    log("RUN", f"angles back after {misses_in_row} missing frames")
                 misses_in_row = 0
             if first and ok1 and ok2:
                 # start with the angles on the +180 deg branch, where the plan starts
@@ -1094,7 +1107,8 @@ def run():
             if mode == "WAIT":
                 hang_err = hang_dev
                 a = 30.0 * (0.0 - cart_now) - 12.0 * v_state
-                calm = len(hang_hist) == hang_hist.maxlen and hang_dev < math.radians(STILL_ANGLE_DEG) and abs(cart_now) < 0.01
+                calm = len(hang_hist) == hang_hist.maxlen and hang_dev < math.radians(STILL_ANGLE_DEG) and abs(cart_now) < 0.01 \
+                    and misses_in_row == 0
                 if not calm and t_mode > 3.0 + STILL_TIME_S:
                     mode, mode_t0 = "RECOVER", cycle_started
                     log("RUN", "arms not hanging still: damping the swing first")
@@ -1146,7 +1160,10 @@ def run():
                     a = -float((bal["K"] @ np.concatenate([x_hat, [a_prev]]))[0])
                     msg = "mode=BALANCE"
             if mode == "RECOVER":
-                if t_mode < 0.5 and abs(v_state) > 0.05:
+                if misses_in_row > MAX_RUNNING_CONSECUTIVE_MISSES:
+                    # V2b_D: angles missing for a while: brake and hold the cart still until they come back
+                    a = -math.copysign(min(abs(v_state) / SAMPLE_PERIOD_S, STOP_BRAKE_M_S2), v_state)
+                elif t_mode < 0.5 and abs(v_state) > 0.05:
                     # stop the cart first (full braking, which the motor always has torque for)
                     a = -math.copysign(CART_ACCEL_MAX_M_S2, v_state)
                     if abs(a * SAMPLE_PERIOD_S) > abs(v_state):
@@ -1159,7 +1176,7 @@ def run():
                         a = 0.0                      # near the track ends, only damp toward the centre
                     a += -2.25 * cart_now - 3.0 * v_state
                 msg = f"mode=RECOVER; hang_err_deg={math.degrees(hang_dev):.1f}"
-                if hang_dev < math.radians(STILL_ANGLE_DEG * 2) and abs(cart_now) < 0.01:
+                if hang_dev < math.radians(STILL_ANGLE_DEG * 2) and abs(cart_now) < 0.01 and misses_in_row == 0:
                     mode, mode_t0 = "WAIT", cycle_started
                 elif t_mode > RECOVER_TIMEOUT_S:
                     raise RuntimeError("the arms did not settle; stopping")
