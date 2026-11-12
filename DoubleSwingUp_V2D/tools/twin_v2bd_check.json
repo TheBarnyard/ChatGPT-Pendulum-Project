@@ -1,0 +1,105 @@
+{
+ "agg": {
+  "V2b|clean": [
+   4,
+   4,
+   4,
+   0,
+   0,
+   4
+  ],
+  "V2b|clean, arm2 I +10%": [
+   4,
+   4,
+   4,
+   0,
+   0,
+   4
+  ],
+  "V2b|clean, arm2 m -4%": [
+   4,
+   4,
+   4,
+   0,
+   0,
+   4
+  ],
+  "V2b|rig radio": [
+   142,
+   42,
+   18,
+   24,
+   1,
+   54
+  ],
+  "V2b_D|clean": [
+   4,
+   4,
+   4,
+   0,
+   0,
+   4
+  ],
+  "V2b_D|clean, arm2 I +10%": [
+   4,
+   4,
+   4,
+   0,
+   0,
+   4
+  ],
+  "V2b_D|clean, arm2 m -4%": [
+   4,
+   4,
+   4,
+   0,
+   0,
+   4
+  ],
+  "V2b_D|rig radio": [
+   137,
+   41,
+   15,
+   15,
+   1,
+   54
+  ],
+  "V2b_D accel-max 12|clean": [
+   4,
+   4,
+   4,
+   0,
+   0,
+   4
+  ],
+  "V2b_D accel-max 12|clean, arm2 I +10%": [
+   4,
+   4,
+   4,
+   0,
+   0,
+   4
+  ],
+  "V2b_D accel-max 12|clean, arm2 m -4%": [
+   4,
+   4,
+   4,
+   0,
+   0,
+   4
+  ],
+  "V2b_D accel-max 12|rig radio": [
+   144,
+   27,
+   10,
+   11,
+   1,
+   54
+  ]
+ },
+ "faults": {
+  "V2b|rig radio": "[  14.47s] [FAULT] control loop, cycle 648: RuntimeError: 6 unusable angle frames in a row; stopping. angle2 reason=wireless_timeout radio_age_ms=106",
+  "V2b_D|rig radio": "[  14.47s] [FAULT] control loop, cycle 648: RuntimeError: 6 unusable angle frames in a row; stopping. angle2 reason=wireless_timeout radio_age_ms=106",
+  "V2b_D accel-max 12|rig radio": "[  12.63s] [FAULT] control loop, cycle 464: RuntimeError: cart at -0.400 m passed TRACK_SOFT_LIMIT_M=0.4"
+ }
+}
