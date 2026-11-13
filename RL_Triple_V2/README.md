@@ -3,6 +3,15 @@
 MuJoCo + Stable-Baselines3 training for the **triple balance** and **triple swing-up**.
 Built 2026-11-13 from `engt481_rl_double_newarms` (same SAC settings, reward, action, tooling); only the model and the task list are new.
 
+## v2f (2026-11-13): exact pause and resume
+
+Ctrl+C (in the turbo window or a train.py window) now saves each run's policy, optimisers and exploration level (`latest.zip`), its replay buffer (`replay_buffer.pkl`, about 110 MB per run) and its counters (`resume.json`: step, best, pass streak, next eval, elapsed time). Continue exactly where it stopped:
+```powershell
+python turbo.py --prefix turbo3 --resume        # all seeds of that turbo run
+python train.py --resume turbo3_s1              # or a single run
+```
+Runs paused with an older version (no replay buffer) still resume; they refill 20k steps before learning again.
+
 ## v2e (2026-11-13): cart acceleration variants (turbo default)
 
 `python turbo.py` now runs one seed of each:
