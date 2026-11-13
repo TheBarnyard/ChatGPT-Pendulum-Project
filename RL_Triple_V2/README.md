@@ -3,6 +3,10 @@
 MuJoCo + Stable-Baselines3 training for the **triple balance** and **triple swing-up**.
 Built 2026-11-13 from `engt481_rl_double_newarms` (same SAC settings, reward, action, tooling); only the model and the task list are new.
 
+## v2d (2026-11-13): energy reward for the triple swing-up (current default)
+
+v2b's `h^2` height reward is flat near hanging, so in testing its evals from hanging still sat still at 100-150k steps. v2d's `triple_swingup` reward is `0.3*h + 0.2*e_term + 0.5*prod(up_i)`: linear height h, plus an energy term that peaks when the arms' energy (cart frame, potential + kinetic) equals exactly the upright energy, so pumping pays at once and spinning does not. In testing it swings hard from the first evals (return 70 to 293 by 125k) but fan-blades (arms up to 50 rad/s), not up yet. Optional anti fan-blading penalty: `--spin-penalty 0.01` (per rad/s above 25 rad/s). `turbo.py` runs one seed of each by default (`--variants energy,energy-spin`). The reward can be chosen with `train.py --reward energy|height|plain`.
+
 ## v2b (2026-11-13): triple swing-up fix
 
 The first version's swing-up learned to sit still: the plain reward is about 0 unless all three arms are up, and the warm start from the balance policy left almost no exploration (SAC entropy coef 0.004). v2b changes only `triple_swingup`:
