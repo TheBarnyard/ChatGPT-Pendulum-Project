@@ -10,6 +10,13 @@ The first version's swing-up learned to sit still: the plain reward is about 0 u
 - **Random-state starts:** 30 % of training episodes start in a random pose (all angles, up to 2 rad/s); 10 % upright and 60 % hanging. Evaluations always start hanging.
 - **Exploration reset:** with `--init-from`, the swing-up resets the entropy coef to 0.1 (`--ent-coef-init` to change it).
 
+## Turbo (v2c): train the swing-up as fast as the PC allows
+
+```powershell
+python turbo.py --dashboard
+```
+Benchmarks CPU and GPU learner layouts on your PC (about 20 s each), then runs 2 independent swing-up seeds in parallel with the fastest one, warm-started from `runs\tri_1_triple_balance\best.zip`. The first seed to solve stops the other. Trainers run at below-normal priority, 2 cores stay free, and evals, videos and checkpoints happen every 200k steps. Every layout uses the same 512 samples per collected step as the normal run; only the number of updates changes (fewer, bigger ones). Options: `--seeds 3`, `--reserve-cores 4`, `--layout cuda,32,8,2048` (skip the benchmark), `--from <best.zip>`. Runs: `runs\turbo_s1`, `runs\turbo_s2`.
+
 ## Install (once, Windows PowerShell)
 
 ```powershell
