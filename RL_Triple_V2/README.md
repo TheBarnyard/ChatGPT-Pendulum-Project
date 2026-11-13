@@ -3,6 +3,13 @@
 MuJoCo + Stable-Baselines3 training for the **triple balance** and **triple swing-up**.
 Built 2026-11-13 from `engt481_rl_double_newarms` (same SAC settings, reward, action, tooling); only the model and the task list are new.
 
+## v2b (2026-11-13): triple swing-up fix
+
+The first version's swing-up learned to sit still: the plain reward is about 0 unless all three arms are up, and the warm start from the balance policy left almost no exploration (SAC entropy coef 0.004). v2b changes only `triple_swingup`:
+- **Height reward:** `0.5*h^2 + 0.5*prod(up_i)`, with h = the summed heights of the three link ends (0 = hanging, 1 = upright), so every bit of lift earns something. Holding upright still scores highest.
+- **Random-state starts:** 30 % of training episodes start in a random pose (all angles, up to 2 rad/s); 10 % upright and 60 % hanging. Evaluations always start hanging.
+- **Exploration reset:** with `--init-from`, the swing-up resets the entropy coef to 0.1 (`--ent-coef-init` to change it).
+
 ## Install (once, Windows PowerShell)
 
 ```powershell
