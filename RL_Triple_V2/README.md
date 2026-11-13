@@ -3,6 +3,13 @@
 MuJoCo + Stable-Baselines3 training for the **triple balance** and **triple swing-up**.
 Built 2026-11-13 from `engt481_rl_double_newarms` (same SAC settings, reward, action, tooling); only the model and the task list are new.
 
+## v2e (2026-11-13): cart acceleration variants (turbo default)
+
+`python turbo.py` now runs one seed of each:
+- **accel18:** the cart acceleration is capped at 18 m/s^2 (the commanded speed ramps at most 18 m/s^2 per 1 ms physics step), like the stepper's stall limit. `train.py --cart-accel-limit 18`.
+- **smooth:** no cap, but the reward is multiplied by a gentle-acceleration factor: 1 below 5 m/s^2 and below 5 m/s^2 change per 10 ms step, 0.5 at 20 m/s^2 (or 25 m/s^2 per step), falling further above. Because it only scales the positive reward, standing still (reward 0) can never pay more than moving; the factor bites hardest once the arms are up. `train.py --smooth-reward`.
+Both use the v2d energy reward. Max cart acceleration (10 ms average) now shows next to max speed in the eval lines, dashboard, report, turbo window and a new HUD line (cart v and a, now and max) in the live view and videos.
+
 ## v2d (2026-11-13): energy reward for the triple swing-up (current default)
 
 v2b's `h^2` height reward is flat near hanging, so in testing its evals from hanging still sat still at 100-150k steps. v2d's `triple_swingup` reward is `0.3*h + 0.2*e_term + 0.5*prod(up_i)`: linear height h, plus an energy term that peaks when the arms' energy (cart frame, potential + kinetic) equals exactly the upright energy, so pumping pays at once and spinning does not. In testing it swings hard from the first evals (return 70 to 293 by 125k) but fan-blades (arms up to 50 rad/s), not up yet. Optional anti fan-blading penalty: `--spin-penalty 0.01` (per rad/s above 25 rad/s). `turbo.py` runs one seed of each by default (`--variants energy,energy-spin`). The reward can be chosen with `train.py --reward energy|height|plain`.
