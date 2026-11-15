@@ -3,6 +3,13 @@
 MuJoCo + Stable-Baselines3 training for the **triple balance** and **triple swing-up**.
 Built 2026-11-13 from `engt481_rl_double_newarms` (same SAC settings, reward, action, tooling); only the model and the task list are new.
 
+## v2g (2026-11-15): resume several turbo groups in one window
+
+```powershell
+python turbo.py --prefix turbo2,turbo3 --resume   # turbo2_s1, turbo2_s2, turbo3_s1, turbo3_s2 together
+```
+All listed runs share the PC: CPU threads are split between them (10 usable cores / 4 runs = 2 each) and they share the GPU, so each run is slower than alone; the total st/s is about the same. Ctrl+C pauses all of them; the same command continues. The first run to solve stops the others. Only `--resume` takes a comma list.
+
 ## v2f (2026-11-13): exact pause and resume
 
 Ctrl+C (in the turbo window or a train.py window) now saves each run's policy, optimisers and exploration level (`latest.zip`), its replay buffer (`replay_buffer.pkl`, about 110 MB per run) and its counters (`resume.json`: step, best, pass streak, next eval, elapsed time). Continue exactly where it stopped:
