@@ -3,6 +3,28 @@
 MuJoCo + Stable-Baselines3 training for the **triple balance** and **triple swing-up**.
 Built 2026-11-13 from `engt481_rl_double_newarms` (same SAC settings, reward, action, tooling); only the model and the task list are new.
 
+## v2h (2026-11-15): the triple swing-up works: planned controller + imitation
+
+Four RL runs of about 11M steps each (energy, energy-spin, accel18, smooth; 2026-11-14/15, about 8.5 h) did not solve the swing-up. Three settled into rolling the three arms round together about once a second (best score 583, 588, 467 of 1200; 0 % upright); the smooth one sits still from hanging in the noise-free test. v2h takes another route:
+
+1. **Planned controller** (`plan_expert.py`, no learning). `model/triple_swingup_plan.json` is a 4.0 s swing-up found by trajectory optimisation for this model (the team's planning method from PUC Math/Triple; `model/make_plan.py`, which needs `pip install casadi` only to re-make the plan after a model change). A time-varying LQR keeps the arms on the plan, then the balance LQR holds. In this simulator it passes the triple swing-up test in 20 of 20 episodes: score 946, upright at 3.2 s, cart at most 1.2 m/s, 0.40 m of track and 6 to 13 m/s^2.
+```powershell
+python plan_expert.py                              # 20 test episodes, prints PASS/fail
+python watch.py --task triple_swingup --plan       # watch it live
+python record.py --task triple_swingup --plan      # mp4: runs\plan_triple_swingup.mp4
+```
+2. **Imitation** (`imitate.py`, a few minutes, CPU). Teaches the normal 256x256 SAC policy to copy the planned controller (DAgger: the policy shares the driving, the controller labels every visited state). In testing (two runs, seeds 0 and 1, 3 CPU threads): 20 of 20 episodes pass after 4 and 5 rounds (4 to 6 minutes), score 947 and 946, cart at most 8 to 11 m/s^2 in the test episodes. A single round can dip (seed 1: 0 of 10 in round 1); the best round is kept and it stops after three all-pass rounds in a row. With the 18 m/s^2 acceleration cap switched on it still passes (3 of 3 episodes, score 947). Result: `runs\imit_triple_swingup\best.zip`, a normal policy for `watch.py`, `record.py` and `train.py --init-from`.
+```powershell
+python imitate.py
+python watch.py --run imit_triple_swingup --policy best
+```
+
+**RL on top of the imitation policy is not ready.** Tested: `train.py --init-from <imitation best.zip> --actor-freeze-steps 30000 --plan-start-prob 0.4`. The score stayed 940 while only the critic learned (to 30k steps) and fell to 27 within 5,000 steps after the policy was allowed to change. `best.zip` keeps the imitation score in that case, but nothing is gained. The policy tolerates little command noise (passes 6 of 6 at noise 0.03, 3 of 6 at 0.05, 0 of 6 at 0.10; SAC's default exploration target is about 0.09) [SIM], which is a likely reason plain SAC never held a catch [HYP].
+
+Also new, experimental and untested beyond a start-up check: `turbo.py --variants plan` (energy reward from the balance warm start, half of the training episodes start at a random point of the plan, no imitation), `train.py --plan-start-prob`, `train.py --actor-freeze-steps`.
+
+Dropped: choosing the plan point from the state instead of the clock in `plan_expert.py` (13 of 20 passes instead of 20 of 20); letting the policy drive alone while collecting imitation data (passes fell from 10/10 to 3/10 as its share went from 70 % to 100 %, because the controller's labels follow the clock).
+
 ## v2g (2026-11-15): resume several turbo groups in one window
 
 ```powershell
