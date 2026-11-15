@@ -3,6 +3,15 @@
 MuJoCo + Stable-Baselines3 training for the **triple balance** and **triple swing-up**.
 Built 2026-11-13 from `engt481_rl_double_newarms` (same SAC settings, reward, action, tooling); only the model and the task list are new.
 
+## v2i (2026-11-15): pure RL with plan starts, with a progress check
+
+Barney's choice after v2h: try plain RL again, with half of the training episodes started at a random point of the planned swing-up (`--variants plan`). Experimental: checked only for start-up, pause and resume, not for learning.
+```powershell
+python turbo.py --prefix turbo4 --variants plan,plan-quiet --layout cuda,64,8,4096
+```
+- **Two seeds, two exploration settings.** `plan` keeps SAC's default exploration target (about 0.09 command noise). `plan-quiet` lowers it (`train.py --target-entropy -2.1`, about 0.03), because the imitation policy only survives about 0.03.
+- **Progress check ("plan from").** The eval from hanging stays at 0 % until the policy can do the whole swing-up. So each eval now also runs four noise-free episodes started on the plan 3.5, 3, 2 and 1 s into it, and reports the earliest one it finishes (upright for at least half of the episode): the line `plan starts: finishes from 3 s in (...)` in console.log and the `plan from` column in the turbo window. It should move from `-` to 3.5s, 3s, 2s, 1s as training works backwards. For reference: the imitation policy finishes from 1 s; the balance warm start finishes from none (it holds 21 % from 3.5 s, then runs into the rail).
+
 ## v2h (2026-11-15): the triple swing-up works: planned controller + imitation
 
 Four RL runs of about 11M steps each (energy, energy-spin, accel18, smooth; 2026-11-14/15, about 8.5 h) did not solve the swing-up. Three settled into rolling the three arms round together about once a second (best score 583, 588, 467 of 1200; 0 % upright); the smooth one sits still from hanging in the noise-free test. v2h takes another route:
