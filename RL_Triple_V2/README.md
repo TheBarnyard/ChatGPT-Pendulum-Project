@@ -3,6 +3,19 @@
 MuJoCo + Stable-Baselines3 training for the **triple balance** and **triple swing-up**.
 Built 2026-11-13 from `engt481_rl_double_newarms` (same SAC settings, reward, action, tooling); only the model and the task list are new.
 
+## v2j (2026-11-16): RL with a follow-the-plan reward and a hold bonus
+
+turbo4 (v2i, 10.5M steps per seed) only learned the final catch: it finished from 3 s into the plan (arms already 20 to 30 deg from upright) and never from 2 s or earlier. v2j changes what RL is paid for (Barney's choice):
+```powershell
+python turbo.py --prefix turbo5 --variants track,track-quiet --layout cuda,64,8,4096
+```
+- **Follow-the-plan reward (`--reward track`).** Each step pays 0 to 1 for how close the arms, their speeds, the cart and its speed are to the planned swing-up at that moment (`model/triple_swingup_plan.json`, the same plan `plan_expert.py` follows). After the plan ends the reference is upright, still and centred, so the same reward then pays for balancing. The episode ends as soon as any arm is more than 0.8 rad (46 deg) off the plan (end code `o` = off-plan), so rolling the arms round can no longer earn anything. This is the DeepMimic recipe (Peng et al., 2018): reference reward + starts along the reference + early end.
+- **The policy sees the plan.** 12 more inputs: the plan's arm angles (sin, cos), arm speeds, cart position and speed at this moment, and how far through the plan it is (0 to 1). So these runs start from scratch: the balance warm start's network has the old 12 inputs.
+- **Hold bonus (`--hold-bonus 1.0`, Barney's idea).** While all three arms count as up (within 12 deg and slower than 2 rad/s), each step earns an extra `1.0 x (1 - exp(-held / 1.5 s))`, growing the longer they stay up without a break and levelling off at 1.0. Holding 3 s straight earns about 170 bonus points; three separate 1 s holds about 81.
+- **Starts.** 60 % of training episodes start at a random point of the plan (or just after it), 10 % upright (= after the plan), the rest hanging. The evals still start hanging and use the normal pass test.
+- **Seeds.** `track` uses SAC's default exploration target, `track-quiet` about a third of it (`--target-entropy -2.1`).
+- **Reading progress.** Because an episode ends when the arms leave the plan, the eval return from hanging is roughly how many 10 ms steps it followed the plan: about 400 = it got through the whole 4 s plan; well above 400 = it is also holding the balance (up to about 1.9 per step with the hold bonus). The "plan from" column works as in v2i.
+
 ## v2i (2026-11-15): pure RL with plan starts, with a progress check
 
 Barney's choice after v2h: try plain RL again, with half of the training episodes started at a random point of the planned swing-up (`--variants plan`). Experimental: checked only for start-up, pause and resume, not for learning.
