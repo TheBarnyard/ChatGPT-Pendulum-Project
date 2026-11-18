@@ -1,0 +1,49 @@
+arm2 c 0.01 s0                             HELD  21.0s  max x     76 mm  v 0.24  th   2.9  
+arm2 m 1.15 s0                             HELD  21.0s  max x     77 mm  v 0.23  th   2.8  
+arm3 I x0.8 s0                             FELL   3.0s  max x    209 mm  v 0.78  th  53.4  ] stage=reading rec
+arm3 I x0.85 s0                            HELD  21.0s  max x     84 mm  v 0.66  th  10.0  
+arm3 I x1.2 s0                             HELD  21.0s  max x     79 mm  v 0.20  th   2.6  
+arm3 I x1.4 s0                             HELD  21.0s  max x     82 mm  v 0.20  th   2.4  
+arm3 c +20mm s0                            HELD  21.0s  max x     82 mm  v 0.28  th   3.6  
+arm3 c -20mm s0                            HELD  21.0s  max x     76 mm  v 0.21  th   2.7  
+arm3 m x0.8 s0                             HELD  21.0s  max x     80 mm  v 0.18  th   2.3  
+arm3 m x1.2 s0                             HELD  21.0s  max x     71 mm  v 0.30  th   3.4  
+arm3 true bare s0                          HELD  21.0s  max x     74 mm  v 0.21  th   2.4  
+clean radio, 3 counts noise s0             HELD  21.0s  max x     81 mm  v 0.24  th   3.3  
+clean radio, 3 counts noise s1             HELD  21.0s  max x     75 mm  v 0.28  th   3.0  
+countdown + rig radio s0                   FELL   0.4s  max x    116 mm  v 0.78  th  58.3  T] stage=reading re
+countdown + rig radio s1                   HELD  18.0s  max x     44 mm  v 0.52  th   4.6  
+countdown, let go +0.00s from GO s0        HELD  18.0s  max x     33 mm  v 0.33  th   4.5  
+countdown, let go +0.05s from GO s0        FELL   0.7s  max x    332 mm  v 0.78  th  48.4  ] stage=reading rec
+countdown, let go +0.10s from GO s0        FELL   0.7s  max x    368 mm  v 0.78  th  56.0  ] stage=reading rec
+countdown, let go -0.05s from GO s0        HELD  18.0s  max x    117 mm  v 0.69  th  10.8  
+countdown, let go -0.10s from GO s0        FELL   0.2s  max x     63 mm  v 0.78  th  45.1  ] stage=reading rec
+encoder zeros 0.3/-0.2/0.2 deg s0          FELL   1.7s  max x    404 mm  v 0.52  th   7.0  [FAULT] stage=readi
+encoder zeros 0.5/-0.5/0.5 deg s0          FELL   0.9s  max x    117 mm  v 0.78  th  57.4  T] stage=reading re
+extra delay 2 ms s0                        HELD  21.0s  max x     74 mm  v 0.20  th   2.7  
+extra delay 4 ms s0                        HELD  21.0s  max x     74 mm  v 0.21  th   2.4  
+extra delay 5 ms s0                        HELD  21.0s  max x     73 mm  v 0.21  th   2.3  
+extra delay 6 ms s0                        HELD  21.0s  max x     75 mm  v 0.20  th   2.2  
+nominal clean radio, 1 count s0            HELD  21.0s  max x     72 mm  v 0.22  th   2.9  
+nominal clean radio, 1 count s1            HELD  21.0s  max x     70 mm  v 0.25  th   3.0  
+rig radio, 2 counts s0                     HELD  60.0s  max x     73 mm  v 0.78  th   9.4  
+rig radio, 2 counts s1                     HELD  60.0s  max x    220 mm  v 0.78  th   8.3  
+rig radio, 2 counts s2                     HELD  60.0s  max x     70 mm  v 0.73  th   9.4  
+rig radio, 2 counts s3                     HELD  60.0s  max x     89 mm  v 0.42  th   6.3  
+rig radio, 2 counts s4                     FELL  43.8s  max x     67 mm  v 0.29  th   3.5   receiver angles, c
+rig radio, 2 counts s5                     HELD  60.0s  max x    105 mm  v 0.52  th   8.1  
+rig radio, 2 counts s6                     FELL  42.6s  max x     69 mm  v 0.30  th   4.0   receiver angles, c
+rig radio, 2 counts s7                     HELD  60.0s  max x     75 mm  v 0.37  th   4.9  
+start lean (0, 0, 1.0) s0                  HELD  21.0s  max x    154 mm  v 0.57  th   7.1  
+start lean (0, 0, 1.5) s0                  HELD  21.0s  max x    204 mm  v 0.78  th  10.0  
+start lean (0, 0, 2.0) s0                  FELL   0.6s  max x    213 mm  v 0.78  th  50.2  ] stage=reading rec
+start lean (0, 1.0, 0) s0                  HELD  21.0s  max x    106 mm  v 0.50  th   6.1  
+start lean (0, 1.5, 0) s0                  HELD  21.0s  max x    117 mm  v 0.66  th   8.7  
+start lean (0, 2.0, 0) s0                  FELL   0.7s  max x    238 mm  v 0.78  th  50.2  ] stage=reading rec
+start lean (1, -1, 1) s0                   FELL   0.3s  max x     95 mm  v 0.78  th  30.3  T] stage=reading re
+start lean (1, 1, 1) s0                    HELD  21.0s  max x     71 mm  v 0.19  th   1.9  
+start lean (2, 0, 0) s0                    HELD  21.0s  max x     80 mm  v 0.27  th   2.0  
+start lean (4, 0, 0) s0                    HELD  21.0s  max x    100 mm  v 0.54  th   4.0  
+worst: radio+bare+delay2+zeros s0          FELL   1.6s  max x    406 mm  v 0.54  th   6.6  [FAULT] stage=readi
+worst: radio+bare+delay2+zeros s1          FELL   1.6s  max x    413 mm  v 0.62  th   6.3  [FAULT] stage=readi
+worst: radio+bare+delay2+zeros s2          FELL   1.6s  max x    407 mm  v 0.57  th   5.1  [FAULT] stage=readi
