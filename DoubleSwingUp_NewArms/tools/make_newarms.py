@@ -16,7 +16,7 @@ rep('# PythonMaster2_swingup_V2b_D.py: PythonMaster2_swingup_V2b.py with the car
 #   - ARM1_* / ARM2_* = the new estimates (arm 1 200 mm, 165.4 g, CoM 169.1 mm; arm 2 250 mm,
 #     174.0 g, CoM 209.5 mm, joint-3 shaft + 2 collars on its tip), inertias worked out the same way,
 #   - ARM_MODEL / --model: "new" (default) builds the model from those values; "fit" runs exactly
-#     like V2b_D on the 2026-11-04 rig fit (SYSID_RATIOS) with its plans,
+#     like V2b_D on the 2026-11-04 rig fit (SYSID_RATIOS) with its plans; b10 ... b50 are in between (every 10 %),
 #   - new-value plans are double_swingup_NA_<name>.json (re-planned 2026-11-20); fit plans keep
 #     their V2 names; PLAN_SPEED_M_S 0.8 for --plan (no "same" plan exists at 0.75 for the new values).
 # Everything else (cart commands every 5 ms, observer, balance, recovery, limits, CSV) is V2b_D.
@@ -70,6 +70,9 @@ ARM2_JOINT_FRICTION = 1.23589e-4
 # "new" = build the model from the values above; "fit" = the 2026-11-04 rig fit (SYSID_RATIOS
 # below) and its plans, exactly as V2b_D. Also on the command line: --model new|fit
 ARM_MODEL = "new"
+# In-between models for --model: the fit's ratios moved this fraction of the way to the new
+# values' ratios (P1, P2, J2r, H, B1, B2). Plans double_swingup_B10_<name>.json etc.
+BLEND_MODELS = {f"b{p}": p / 100 for p in range(10, 60, 10)}   # b10 ... b50
 ''')
 rep('''SYSID_RATIOS = {"P1": 5.2253, "P2": 2.0148, "J2r": 0.4506, "H": 0.4027, "B1": 0.0182, "B2": 0.0138}
 ''', '''FIT_RATIOS = {"P1": 5.2253, "P2": 2.0148, "J2r": 0.4506, "H": 0.4027, "B1": 0.0182, "B2": 0.0138}
@@ -84,14 +87,21 @@ TRAJECTORY_FILE = HERE / f"{PLAN_PREFIX}{SWING_PATH}.json"
 rep('''    ap.add_argument("--list", action="store_true", help="list the plan files in this folder and stop")
     args = ap.parse_args()
 ''', '''    ap.add_argument("--list", action="store_true", help="list the plan files in this folder and stop")
-    ap.add_argument("--model", choices=("new", "fit"), default=ARM_MODEL,
-                    help="arm model: new = the 2026-11-20 arm values (default), fit = the 2026-11-04 rig fit (as V2b_D)")
+    ap.add_argument("--model", choices=("new", "fit", *BLEND_MODELS), default=ARM_MODEL,
+                    help="arm model: new = the 2026-11-20 arm values (default), fit = the 2026-11-04 rig fit (as V2b_D), "
+                         "b10 ... b50 = the fit moved 10 ... 50 %% of the way to the new values")
     args = ap.parse_args()
     if args.model != ARM_MODEL:   # other model than the file's: its default plan
         SWING_PATH = "same_4.0s" if args.model == "fit" else "same_3.5s"
     ARM_MODEL = args.model
     SYSID_RATIOS = FIT_RATIOS if ARM_MODEL == "fit" else None
     PLAN_PREFIX = "double_swingup_V2_" if ARM_MODEL == "fit" else "double_swingup_NA_"
+    if ARM_MODEL in BLEND_MODELS:
+        # in between: the 11-04 fit moved part of the way toward the new values (every ratio)
+        _new = arm_ratios()
+        _f = BLEND_MODELS[ARM_MODEL]
+        SYSID_RATIOS = {k: FIT_RATIOS[k] + _f * (_new[k] - FIT_RATIOS[k]) for k in FIT_RATIOS}
+        PLAN_PREFIX = f"double_swingup_{ARM_MODEL.upper()}_"
     TRAJECTORY_FILE = HERE / f"{PLAN_PREFIX}{SWING_PATH}.json"
     _r = arm_ratios()
     log("START", f"arm model '{ARM_MODEL}': P1={_r['P1']:.4f} P2={_r['P2']:.4f} J2/J1={_r['J2r']:.4f} H={_r['H']:.4f} "
