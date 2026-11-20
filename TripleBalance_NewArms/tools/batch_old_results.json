@@ -1,0 +1,79 @@
+{
+ "OLD script, truth=old, arm1 m x1.15": {
+  "held": true,
+  "stop": [
+   "[  25.00s] [STOP] Ctrl+C at reading receiver angles after 2099 cycles"
+  ],
+  "max_x_mm": 82.96169086167403,
+  "max_v": 0.2769856770833333,
+  "max_th_deg": 3.5253640999194396,
+  "stalled": false,
+  "balanced": "[  25.00s] [STOP] balanced 21.0 s. Trims found (deg, arm1/joint2/joint3): 0.008,-0.004,-0.003. Next run can start there with: --offsets 0.008,-0.004,-0.003"
+ },
+ "OLD script, truth=old, arm1 m x0.85": {
+  "held": true,
+  "stop": [
+   "[  25.00s] [STOP] Ctrl+C at reading receiver angles after 2099 cycles"
+  ],
+  "max_x_mm": 76.1654223692277,
+  "max_v": 0.27096424932065216,
+  "max_th_deg": 3.2386432164489394,
+  "stalled": false,
+  "balanced": "[  25.01s] [STOP] balanced 21.0 s. Trims found (deg, arm1/joint2/joint3): 0.009,-0.007,-0.003. Next run can start there with: --offsets 0.009,-0.007,-0.003"
+ },
+ "OLD script, truth=old, arm2 m x0.85": {
+  "held": false,
+  "stop": [
+   "[   8.03s] [FAULT] stage=reading receiver angles, cycle=402: RuntimeError: Angle limit: arm1=+0.8deg arm2=-25.9deg arm3=-2.1deg"
+  ],
+  "max_x_mm": 181.34782986175125,
+  "max_v": 0.779022216796875,
+  "max_th_deg": 52.42265626817772,
+  "stalled": false,
+  "balanced": "[   8.12s] [STOP] balanced 4.0 s. Trims found (deg, arm1/joint2/joint3): 0.390,-0.475,0.136. Next run can start there with: --offsets 0.390,-0.475,0.136"
+ },
+ "OLD script, truth=old, arm1 c +20mm": {
+  "held": true,
+  "stop": [
+   "[  25.00s] [STOP] Ctrl+C at reading receiver angles after 2099 cycles"
+  ],
+  "max_x_mm": 73.71531464245982,
+  "max_v": 0.28986873183139533,
+  "max_th_deg": 3.6457427918003447,
+  "stalled": false,
+  "balanced": "[  25.01s] [STOP] balanced 21.0 s. Trims found (deg, arm1/joint2/joint3): 0.006,-0.003,-0.002. Next run can start there with: --offsets 0.006,-0.003,-0.002"
+ },
+ "OLD script, truth=old, arm2 m x1.15": {
+  "held": true,
+  "stop": [
+   "[  25.00s] [STOP] Ctrl+C at reading receiver angles after 2099 cycles"
+  ],
+  "max_x_mm": 77.94986437712906,
+  "max_v": 0.22662464488636364,
+  "max_th_deg": 2.7678582100259024,
+  "stalled": false,
+  "balanced": "[  25.01s] [STOP] balanced 21.0 s. Trims found (deg, arm1/joint2/joint3): 0.008,-0.006,-0.002. Next run can start there with: --offsets 0.008,-0.006,-0.002"
+ },
+ "OLD script, truth=old, arm2 c +20mm": {
+  "held": false,
+  "stop": [
+   "[  20.21s] [FAULT] stage=reading receiver angles, cycle=1620: RuntimeError: Angle limit: arm1=-26.4deg arm2=-7.5deg arm3=+0.6deg"
+  ],
+  "max_x_mm": 132.56167248298195,
+  "max_v": 0.779022216796875,
+  "max_th_deg": 40.068984376653475,
+  "stalled": false,
+  "balanced": "[  20.27s] [STOP] balanced 16.2 s. Trims found (deg, arm1/joint2/joint3): -0.138,0.045,0.090. Next run can start there with: --offsets -0.138,0.045,0.090"
+ },
+ "OLD script, truth=new": {
+  "held": true,
+  "stop": [
+   "[  25.00s] [STOP] Ctrl+C at reading receiver angles after 2099 cycles"
+  ],
+  "max_x_mm": 70.34666601072792,
+  "max_v": 0.26519905252659576,
+  "max_th_deg": 3.0501438538478363,
+  "stalled": false,
+  "balanced": "[  25.01s] [STOP] balanced 21.0 s. Trims found (deg, arm1/joint2/joint3): 0.017,-0.010,-0.004. Next run can start there with: --offsets 0.017,-0.010,-0.004"
+ }
+}

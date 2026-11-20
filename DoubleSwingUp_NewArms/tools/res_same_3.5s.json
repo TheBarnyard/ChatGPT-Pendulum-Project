@@ -1,0 +1,50 @@
+{
+ "script new | truth new | clean": [
+  4,
+  4,
+  4,
+  0,
+  0,
+  4
+ ],
+ "script new | truth new | arm2 I+15%": [
+  2,
+  2,
+  2,
+  0,
+  0,
+  2
+ ],
+ "script new | truth new | arm2 m-10%": [
+  2,
+  2,
+  2,
+  0,
+  0,
+  2
+ ],
+ "script new | truth new | rig radio": [
+  26,
+  6,
+  3,
+  0,
+  0,
+  12
+ ],
+ "script new | truth 11-04 fit | clean": [
+  8,
+  0,
+  0,
+  0,
+  0,
+  4
+ ],
+ "script fit | truth new | clean": [
+  16,
+  0,
+  0,
+  0,
+  0,
+  4
+ ]
+}
