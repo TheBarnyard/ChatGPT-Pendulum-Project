@@ -6,8 +6,18 @@ twin_rig.TW = twin_crn.twin_rig.TW = os.environ.get("TWINPY")
 NEW = ({"m": 0.165400, "c": 0.169095, "I": 3.58603e-4, "L": 0.2, "b": 1.62994e-4},
        {"m": 0.174025, "c": 0.209476, "I": 6.69226e-4, "L": 0.25, "b": 1.23589e-4})
 FIT = twin_rig.physical()
+twin_rig._orig_physical = twin_rig.physical
 def make_physical(truth):
     def physical(scale=None):
+        if str(truth).startswith("blend"):
+            f = float(truth[5:])
+            j1n = NEW[0]["m"] * 0 + 0.012049   # J1 of the new values
+            Rn = {"P1": 5.2098, "P2": 3.0256, "J2r": 0.6894, "H": 0.6051, "B1": 0.0135, "B2": 0.0103}
+            R0 = dict(twin_rig.R)
+            twin_rig.R.update({k: R0[k] + f * (Rn[k] - R0[k]) for k in R0})
+            a1, a2 = twin_rig._orig_physical()
+            twin_rig.R.update(R0)
+            return a1, a2
         a1, a2 = (dict(x) for x in (NEW if truth == "new" else FIT))
         for (arm, key), f in (scale or {}).items():
             (a1 if arm == 1 else a2)[key] *= f
@@ -29,7 +39,10 @@ add("script new | truth new | arm2 m-10%", "new", [], range(61, 63), scale={(2, 
 add("script new | truth new | rig radio", "new", [], range(100, 112), radio_f=J2)
 add("script new | truth 11-04 fit | clean", "fit", [], range(61, 65))
 add("script fit | truth new | clean", "new", FITP, range(61, 65))
-if os.environ.get("QUICK"):
+if os.environ.get("BLEND"):
+    b = os.environ["BLEND"]; PATCH = [(r'^ARM_MODEL = "new"$', f'ARM_MODEL = "b{int(float(b)*100)}"'), (r'^SYSID_RATIOS = .*$', 'SYSID_RATIOS = None')]
+    jobs = [dict(pkg=PKG, plan=PLAN, seed=s, seconds=40.0, case=f"script b{int(float(b)*100)} | truth same | clean", truth="blend"+b, patches=PATCH) for s in (61, 62)]
+elif os.environ.get("QUICK"):
     jobs = [j for j in jobs if j["case"] == "script new | truth new | clean"][:2]
 if __name__ == "__main__":
     from multiprocessing import Pool

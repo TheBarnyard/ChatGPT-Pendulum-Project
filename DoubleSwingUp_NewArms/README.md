@@ -22,6 +22,10 @@ Arm 1 agrees. Arm 2's first moment is about 50 % higher than what the arms showe
 
 Quick check, no motor: tape joint 2 so the arms hang straight, time 10 small swings. About 11.2 s means the fit is right (`--model fit`), about 11.9 s means the new values are (`--model new`).
 
+## In-between models (added 2026-11-20 20:15 UTC)
+
+`--model b10` ... `b50`: the 11-04 fit's ratios moved 10 ... 50 % of the way toward the new values (P2 2.015 -> 2.520 at b50). Plans `double_swingup_B<n>_<name>.json`, made by stepping from the V2 plan 10 % at a time: `same_3.5s` (default) and `whip_3.5s` for every step, `same_4.0s` for b10 and b20 only (b30 found none). Twin, clean radio, true arms = the same step: b10, b30, b50 each 2/2 caught first try [SIM].
+
 ## Twin check [SIM]
 
 The real script on the digital twin (`tools/twin_newarms_check.py`), 40 s per run. Results: `tools/res_*.json`.
@@ -41,7 +45,7 @@ The plan must match the real arms. Each model fails on the other's arms.
 New folder; the V2D folder is not touched.
 ```
 mkdir -p ~/Desktop/DoubleSwingUpNewArms && cd ~/Desktop/DoubleSwingUpNewArms
-B=https://raw.githubusercontent.com/TheBarnyard/ChatGPT-Pendulum-Project/claude/project-thread-evv7sw/DoubleSwingUp_NewArms
+B=https://raw.githubusercontent.com/TheBarnyard/ChatGPT-Pendulum-Project/f704065642591446c82ae3831dd410f05cedf170/DoubleSwingUp_NewArms
 for f in $(curl -fsSL $B/FILES); do curl -fsSLO $B/$f; done
 sha256sum -c SHA256SUMS
 ```
@@ -53,4 +57,5 @@ $HOME/PythonLibraries/bin/python PythonMaster2_swingup_V2b_D_NewArms.py
 ```
 - `--path same_3.0s` (or `whip_3.0s`, `whip_3.5s`) picks another plan; `--list` shows them.
 - `--model fit` runs the 11-04 fit with its plans (default `same_4.0s`), same as V2b_D.
+- `--model b10` ... `b50` runs an in-between model (see above).
 - `--sends`, `--accel-max` as in V2b_D. CSVs go to `run_logs/`.
